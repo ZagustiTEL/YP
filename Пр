@@ -1,106 +1,137 @@
-// =============================================
-// Стул с двумя ножками и поперечными палками
-// =============================================
+// Школьный стул с двумя опорными палками (полозьями) на полу
+// Центральная палка держит сиденье, к сиденью прикреплена спинка
 
 #version 3.7;
-global_settings { assumed_gamma 1.0 }
 
-// Камера
+global_settings {
+  assumed_gamma 1.0
+  ambient_light rgb <1,1,1>
+}
+
+// -------------------- Камера --------------------
 camera {
-  location  <1.5, 1.2, -2.5>
+  location  <-3, 1.5, 4>
   look_at   <0, 0.6, 0>
-  angle 45
+  angle     50
 }
 
-// Источник света
+// -------------------- Освещение --------------------
 light_source {
-  <2, 5, -3>
+  <5, 8, -3>
   color rgb <1, 1, 1>
+  shadowless no
 }
+
 light_source {
-  <-1, 3, -2>
-  color rgb <0.6, 0.6, 0.6>
+  <-2, 4, 3>
+  color rgb <0.8, 0.8, 0.9>
 }
 
-// Пол (необязательно)
-plane { y, -0.05 pigment { color rgb <0.9, 0.85, 0.8> } }
-
-// -----------------------------
-// Параметры стула
-#declare LegHeight   = 0.85;
-#declare LegWidth    = 0.05;
-#declare LegDepth    = 0.05;
-#declare LegSpacing  = 0.45;   // расстояние между ножками
-
-#declare SeatThick   = 0.04;
-#declare SeatWidth   = LegSpacing + LegWidth;
-#declare SeatDepth   = 0.40;
-#declare SeatHeight  = 0.45;   // высота сиденья от пола
-
-#declare BackHeight  = 0.40;   // высота спинки
-#declare BackThick   = 0.03;
-
-// Поперечные палки (между ножками)
-#declare BarRadius   = 0.025;
-#declare BarY_Seat   = SeatHeight;            // под сиденье
-#declare BarY_Back   = SeatHeight + BackHeight; // под спинку
-
-// -----------------------------
-// Левая ножка
-#declare LeftLeg = box {
-  <-LegSpacing/2 - LegWidth, 0, -LegDepth/2>,
-  <-LegSpacing/2, LegHeight, LegDepth/2>
-  pigment { color rgb <0.6, 0.4, 0.2> }
-  finish  { phong 0.6 }
+// Заполняющий мягкий свет
+light_source {
+  <0, 5, 0>
+  color rgb <0.5, 0.5, 0.6>
+  shadowless
 }
 
-// Правая ножка
-#declare RightLeg = box {
-  < LegSpacing/2, 0, -LegDepth/2>,
-  < LegSpacing/2 + LegWidth, LegHeight, LegDepth/2>
-  pigment { color rgb <0.6, 0.4, 0.2> }
-  finish  { phong 0.6 }
+// -------------------- Пол (лёгкая референция) --------------------
+plane {
+  y, -0.05
+  pigment { color rgb <0.85, 0.85, 0.9> }
+  finish { ambient 0.3 diffuse 0.7 }
 }
 
-// Поперечная палка (нижняя — под сиденье)
-#declare BarSeat = cylinder {
-  <-LegSpacing/2, BarY_Seat, 0>,
-  < LegSpacing/2, BarY_Seat, 0>,
-  BarRadius
-  pigment { color rgb <0.7, 0.5, 0.25> }
-  finish  { phong 0.7 }
+// ==================== МОДЕЛЬ СТУЛА ====================
+
+// ---------------------------------------------------
+// 1. Две нижние палки (лежат на полу)
+// ---------------------------------------------------
+#declare Pole_Radius = 0.035;  // толщина палок
+#declare Pole_Length = 0.9;
+#declare Pole_Y_Offset = 0.0;   // лежат на полу (Y=0)
+
+// Левая палка (смещена по оси X влево)
+cylinder {
+  <-0.4, Pole_Y_Offset, -0.35>, <-0.4, Pole_Y_Offset, 0.35>, Pole_Radius
+  pigment { color rgb <0.6, 0.4, 0.25> }  // древесный цвет
+  finish { phong 0.4 reflection 0.05 }
 }
 
-// Поперечная палка (верхняя — под спинку)
-#declare BarBack = cylinder {
-  <-LegSpacing/2, BarY_Back, 0>,
-  < LegSpacing/2, BarY_Back, 0>,
-  BarRadius
-  pigment { color rgb <0.7, 0.5, 0.25> }
-  finish  { phong 0.7 }
+// Правая палка
+cylinder {
+  <0.4, Pole_Y_Offset, -0.35>, <0.4, Pole_Y_Offset, 0.35>, Pole_Radius
+  pigment { color rgb <0.6, 0.4, 0.25> }
+  finish { phong 0.4 reflection 0.05 }
 }
 
-// Сиденье (лежит на нижней палке)
-#declare Seat = box {
-  < -SeatWidth/2, BarY_Seat, -SeatDepth/2 >,
-  <  SeatWidth/2, BarY_Seat + SeatThick, SeatDepth/2 >
-  pigment { color rgb <0.55, 0.35, 0.15> }
-  finish  { phong 0.5 }
+// ---------------------------------------------------
+// 2. Центральная вертикальная палка (идёт от пола до сиденья)
+// ---------------------------------------------------
+#declare Central_Height = 0.48;   // высота от пола до сиденья
+#declare Central_Radius = 0.045;
+
+cylinder {
+  <0, Pole_Y_Offset, 0>, <0, Central_Height, 0>, Central_Radius
+  pigment { color rgb <0.65, 0.45, 0.3> }
+  finish { phong 0.5 reflection 0.05 }
 }
 
-// Спинка (крепится к верхней палке)
-#declare Back = box {
-  < -SeatWidth/2 + 0.03, BarY_Back, -0.02 >,
-  <  SeatWidth/2 - 0.03, BarY_Back + BackHeight, 0.04 >
-  pigment { color rgb <0.55, 0.35, 0.15> }
-  finish  { phong 0.5 }
+// ---------------------------------------------------
+// 3. Сиденье
+// ---------------------------------------------------
+#declare Seat_Width = 0.42;
+#declare Seat_Depth = 0.38;
+#declare Seat_Thick = 0.04;
+#declare Seat_Y = Central_Height - Seat_Thick/2;
+
+box {
+  <-Seat_Width/2, Seat_Y - Seat_Thick/2, -Seat_Depth/2>,
+  < Seat_Width/2, Seat_Y + Seat_Thick/2,  Seat_Depth/2>
+  pigment { color rgb <0.5, 0.35, 0.2> }  // тёмное дерево
+  finish { phong 0.6 reflection 0.05 }
 }
 
-// -----------------------------
-// Сборка
-object { LeftLeg  }
-object { RightLeg }
-object { BarSeat }
-object { BarBack }
-object { Seat    }
-object { Back    }
+// ---------------------------------------------------
+// 4. Спинка (прикреплена к задней части сиденья)
+// ---------------------------------------------------
+#declare Back_Width = 0.38;
+#declare Back_Height = 0.32;
+#declare Back_Thick = 0.025;
+#declare Back_X_Offset = 0.0;
+#declare Back_Z_Offset = -Seat_Depth/2 + 0.02;  // чуть позади сиденья
+#declare Back_Y_Bottom = Seat_Y + Seat_Thick/2;  // от уровня верха сиденья
+#declare Back_Y_Top = Back_Y_Bottom + Back_Height;
+
+box {
+  <-Back_Width/2, Back_Y_Bottom, Back_Z_Offset - Back_Thick/2>,
+  < Back_Width/2, Back_Y_Top,    Back_Z_Offset + Back_Thick/2>
+  pigment { color rgb <0.55, 0.38, 0.22> }
+  finish { phong 0.5 reflection 0.05 }
+}
+
+// ---------------------------------------------------
+// 5. Дополнительно: перекладины между нижними палками (для жёсткости, по желанию)
+// ---------------------------------------------------
+#declare Cross_Radius = 0.028;
+cylinder {
+  <-0.38, 0.03, -0.18>, <0.38, 0.03, -0.18>, Cross_Radius
+  pigment { color rgb <0.6, 0.4, 0.25> }
+  finish { phong 0.4 }
+}
+cylinder {
+  <-0.38, 0.03, 0.18>, <0.38, 0.03, 0.18>, Cross_Radius
+  pigment { color rgb <0.6, 0.4, 0.25> }
+  finish { phong 0.4 }
+}
+
+// ---------------------------------------------------
+// 6. Скруглённые соединения (небольшие сферы в узлах, для правдоподобия)
+// ---------------------------------------------------
+union {
+  // соединение центральной стойки с полом (центр между палками)
+  sphere { <0, 0.02, 0>, Central_Radius*1.2 }
+  // крепление к сиденью
+  sphere { <0, Central_Height - 0.02, 0>, Central_Radius*1.1 }
+  pigment { color rgb <0.6, 0.42, 0.27> }
+  finish { phong 0.6 }
+}
